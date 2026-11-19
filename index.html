@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E210 Printer</title>
+<meta name="theme-color" content="#1f2933">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>E210 Printer</h1>
+  <div class="conn">
+    <span id="state" class="pill off">Not connected</span>
+    <button id="btnBle">Bluetooth</button>
+    <button id="btnSerial" class="secondary" title="Classic Bluetooth serial port, e.g. COM5 (desktop Chrome/Edge)">COM port</button>
+    <button id="btnDisc" class="secondary" hidden>Disconnect</button>
+  </div>
+</header>
+<p id="support" class="warn" hidden></p>
+
+<main>
+  <section class="panel">
+    <div class="tabs" role="tablist">
+      <button data-mode="text" class="on">Text</button>
+      <button data-mode="image">Image</button>
+      <button data-mode="qr">QR code</button>
+      <button data-mode="barcode">Barcode</button>
+    </div>
+
+    <div data-pane="text">
+      <label>Text <textarea id="text" rows="3">Hello E210</textarea></label>
+      <div class="row">
+        <label>Size
+          <select id="textSize"><option value="fit">Fit to label</option><option>16</option><option>20</option><option>24</option><option>32</option><option>40</option><option>56</option><option>72</option><option>96</option></select>
+        </label>
+        <label>Align <select id="textAlign"><option>center</option><option>left</option><option>right</option></select></label>
+        <label>Font <select id="textFont"><option value="sans-serif">Sans</option><option value="serif">Serif</option><option value="monospace">Mono</option></select></label>
+        <label class="chk"><input type="checkbox" id="textBold" checked> Bold</label>
+      </div>
+    </div>
+
+    <div data-pane="image" hidden>
+      <label>Picture <input type="file" id="imgFile" accept="image/*"></label>
+      <div class="row">
+        <label>Mode <select id="dither"><option value="fs">Dither (photos)</option><option value="th">Threshold (logos, text)</option></select></label>
+        <label>Brightness <input type="range" id="bright" min="-100" max="100" value="0"></label>
+        <label>Contrast <input type="range" id="contrast" min="-100" max="100" value="0"></label>
+        <label>Fit <select id="imgFit"><option value="contain">Whole image</option><option value="cover">Fill label</option></select></label>
+      </div>
+      <p class="hint">You can also paste an image (Ctrl+V) or drop one on the preview.</p>
+    </div>
+
+    <div data-pane="qr" hidden>
+      <label>QR content <input id="qrText" value="https://example.com"></label>
+      <label>Caption (optional) <textarea id="qrCaption" rows="2" placeholder="text beside the code"></textarea></label>
+    </div>
+
+    <div data-pane="barcode" hidden>
+      <label>Barcode content <input id="bcText" value="ABC-12345"></label>
+      <div class="row">
+        <label>Type <select id="bcType"><option>CODE128</option><option>EAN13</option><option>EAN8</option><option>UPC</option><option>CODE39</option><option>ITF</option></select></label>
+        <label class="chk"><input type="checkbox" id="bcShowText" checked> Show text</label>
+      </div>
+    </div>
+
+    <h2>Label</h2>
+    <div class="row">
+      <label>Paper
+        <select id="media"><option value="gap">Gap labels</option><option value="continuous">Continuous roll</option><option value="blackmark">Black mark</option><option value="holes">Labels with holes</option></select>
+      </label>
+      <label>Preset <select id="preset"></select></label>
+    </div>
+    <div class="row">
+      <label>Paper width mm <input type="number" id="pmm" min="20" max="80" step="1" value="58"></label>
+      <label>Print width mm <input type="number" id="wmm" min="5" max="48" step="1" value="40"></label>
+      <label id="hwrap">Label height mm <input type="number" id="hmm" min="5" max="300" step="1" value="30"></label>
+      <label id="fwrap" title="Paper fed after the print so it can be torn off. 0 = stop right after the last line.">Feed after print mm <input type="number" id="feedmm" min="0" max="100" step="1" value="0"></label>
+    </div>
+    <details class="help">
+      <summary>What do these settings mean?</summary>
+      <p><b>Preset</b> fills in the paper type and size for common rolls and labels. Changing a size afterwards switches it to "Custom".</p>
+      <p><b>Paper width</b> is the physical width of your roll or label backing. It is only used to draw the preview to scale.</p>
+      <p><b>Print width</b> is the width of the area that gets printed: the label width, or up to 48 mm on a roll.
+        It can't go above <b>48 mm</b>, because the print head is 48 mm wide (384 dots at 8 dots per mm).
+        On a 52 or 58 mm roll, the rest is a blank margin.</p>
+      <p><b>Feed after print</b> (roll only) is how much paper comes out after the last printed line, so you can tear it off. The printer always feeds a little on its own so the print clears the tear-off edge; this field adds extra paper on top of that.</p>
+      <p><b>Label height</b> is the length of one label. On a continuous roll the length follows the content instead.</p>
+      <p><b>Darkness</b> 13 gives the blackest result. Higher values make this printer print faster and lighter. Large solid black areas always come out a little grey.</p>
+    </details>
+    <div class="row">
+      <label>Rotate <select id="rotate"><option value="0">0°</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select></label>
+      <label>Darkness <input type="range" id="density" min="1" max="14" value="13"><span id="densityVal">13</span></label>
+      <label>Copies <input type="number" id="copies" min="1" max="99" value="1"></label>
+      <label class="chk"><input type="checkbox" id="border"> Border</label>
+      <label class="chk"><input type="checkbox" id="invert"> Invert</label>
+    </div>
+  </section>
+
+  <section class="panel preview">
+    <h2>Preview</h2>
+    <div id="drop" class="canvasWrap"><canvas id="pv"></canvas></div>
+    <canvas id="cv" hidden></canvas>
+    <p id="dims" class="hint"></p>
+    <p class="hint legend"><span class="sw paper"></span> paper <span class="sw margin"></span> outside the print head <span class="sw area"></span> print area</p>
+    <div class="actions">
+      <button id="btnPrint" class="big" disabled>Print</button>
+      <button id="btnFeed" class="secondary" disabled title="Feed to the next label (or 10 mm on a roll)">Feed</button>
+      <button id="btnStatus" class="secondary" disabled>Status</button>
+    </div>
+    <div id="progress" hidden><div></div></div>
+    <p id="log" class="log"></p>
+    <h2>Printer status</h2>
+    <dl id="status" class="status">
+      <dt>Connection</dt><dd id="stConn">Not connected</dd>
+      <dt>State</dt><dd id="stState">–</dd>
+      <dt>Paper</dt><dd id="stPaper">–</dd>
+      <dt>Lid</dt><dd id="stLid">–</dd>
+      <dt>Print head</dt><dd id="stHead">–</dd>
+      <dt>Raw status</dt><dd id="stRaw">–</dd>
+    </dl>
+  </section>
+</main>
+
+<script src="vendor/qrcode.js"></script>
+<script src="vendor/JsBarcode.all.min.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
